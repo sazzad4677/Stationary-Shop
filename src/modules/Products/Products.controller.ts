@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { productService } from './Product.service';
-import IResponse from '../../utils/responseType';
+import IResponse from '../../helper/responseType';
 import TProduct from './Products.interface';
 const getProducts = async (req: Request, res: Response) => {
   try {
@@ -12,7 +12,7 @@ const getProducts = async (req: Request, res: Response) => {
     };
     res.status(200).json(response);
   } catch (error) {
-    res.status(400).json({
+    res.status(404).json({
       message: 'Failed to get products',
       success: false,
       error: error,
@@ -31,7 +31,7 @@ const createProduct = async (req: Request, res: Response) => {
     };
     res.status(201).json(response);
   } catch (error) {
-    res.status(400).json({
+    res.status(404).json({
       message: 'Failed to create product',
       success: false,
       error: error,
@@ -50,7 +50,7 @@ const getProductByID = async (req: Request, res: Response) => {
     };
     res.status(200).json(response);
   } catch (error) {
-    res.status(400).json({
+    res.status(404).json({
       message: 'Failed to get product',
       success: false,
       error: error,
@@ -69,7 +69,33 @@ const updateProduct = async (req: Request, res: Response) => {
     };
     res.status(200).json(response);
   } catch (error) {
-    res.status(400).json({
+    res.status(404).json({
+      message: 'Failed to get product',
+      success: false,
+      error: error,
+    });
+  }
+};
+
+const deleteProduct = async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const result = await productService.deleteProduct(productId);
+    if (!result) {
+      res.status(404).json({
+        message: 'Product not found',
+        success: false,
+      });
+      return;
+    }
+    const response: IResponse<object> = {
+      message: 'Product deleted successfully',
+      success: true,
+      data: {},
+    };
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(404).json({
       message: 'Failed to get product',
       success: false,
       error: error,
@@ -82,4 +108,5 @@ export const productController = {
   createProduct,
   getProductByID,
   updateProduct,
+  deleteProduct,
 };
