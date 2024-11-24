@@ -1,4 +1,3 @@
-import { Product } from '../Products/Products.model';
 import TOrder from './Orders.interface';
 import { Order } from './Orders.model';
 

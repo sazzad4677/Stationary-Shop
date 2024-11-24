@@ -13,6 +13,7 @@ The Stationary Shop API is built with **Node.js** and **TypeScript**, with a RES
 2. **Order Management**:
    - Place an Order.
    - Access total revenue.
+
 ---
 
 ### Installation Guide
@@ -61,20 +62,20 @@ The Stationary Shop API is built with **Node.js** and **TypeScript**, with a RES
 
 #### Products
 
-| Method | Endpoint               | Description                        |
-| ------ | ---------------------- | ---------------------------------- |
-| POST   | `/products`            | Add product to the inventory       |
-| PUT    | `/products/:productId` | update the product                 |
-| DELETE | `/products/:productId` | Delete a product by ID             |
-| GET    | `/products/:productId` | Get details of a product           |
-| GET    | `/products`            | Get all products                   |
+| Method | Endpoint               | Description                  |
+| ------ | ---------------------- | ---------------------------- |
+| POST   | `/products`            | Add product to the inventory |
+| PUT    | `/products/:productId` | update the product           |
+| DELETE | `/products/:productId` | Delete a product by ID       |
+| GET    | `/products/:productId` | Get details of a product     |
+| GET    | `/products`            | Get all products             |
 
 #### Orders
 
-| Method | Endpoint          | Description                   |
-| ------ | ----------------- | ----------------------------- |
-| POST   | `/orders`         | Place an order                |
-| GET    | `/orders/revenue` | Fetch total revenue           |
+| Method | Endpoint          | Description         |
+| ------ | ----------------- | ------------------- |
+| POST   | `/orders`         | Place an order      |
+| GET    | `/orders/revenue` | Fetch total revenue |
 
 ---
 
@@ -103,7 +104,9 @@ The Stationary Shop API is built with **Node.js** and **TypeScript**, with a RES
 - **ts-node-dev**: Hot reloading for development.
 - **ESLint**: Static code analysis.
 - **Prettier**: Code formatter.
+
 ---
+
 ## Contributing
 
 Contributions are welcome! Please fork this repository, create a feature branch, and submit a pull request.
