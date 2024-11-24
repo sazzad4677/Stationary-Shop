@@ -78,11 +78,36 @@ The Stationary Shop API is built with **Node.js** and **TypeScript**, with a RES
 
 ---
 
-### Technologies used
+## Available Scripts
 
-This project employs a modern stack:
+- **`yarn start-dev`**: Start the app in development mode with hot reloading.
+- **`yarn start-prod`**: Run the compiled app in production mode.
+- **`yarn format`**: Format the code using Prettier.
+- **`yarn lint`**: Check for linting errors using ESLint.
+- **`yarn lint:fix`**: Fix linting issues automatically.
 
-- **Node.js** and **Express.js** for API logic.
-- **TypeScript** for type-safe development.
-- **MongoDB** (via **Mongoose**) for database interactions.
-- Tools like **ESLint** and **Prettier** ensure code quality.
+---
+
+## Dependencies
+
+### Core Dependencies
+
+- **Express**: Web framework for building APIs.
+- **Mongoose**: ODM for MongoDB.
+- **dotenv**: Environment variable management.
+- **cors**: Enable cross-origin requests.
+
+### Development Dependencies
+
+- **TypeScript**: Type-safe JavaScript.
+- **ts-node-dev**: Hot reloading for development.
+- **ESLint**: Static code analysis.
+- **Prettier**: Code formatter.
+---
+## Contributing
+
+Contributions are welcome! Please fork this repository, create a feature branch, and submit a pull request.
+
+## License
+
+This project is licensed under the [ISC License](LICENSE).
