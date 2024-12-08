@@ -11,7 +11,6 @@ const productSchema = new Schema<TProduct>(
     brand: {
       type: String,
       required: [true, 'Product brand is required'],
-      unique: true,
     },
     price: {
       type: Number,
