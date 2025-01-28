@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { productService } from './Product.service';
+import { productService } from './product.service';
 import IResponse from '../../helper/responseType';
-import TProduct from './Products.interface';
+import TProduct from './products.interface';
 const getProducts = async (req: Request, res: Response) => {
   try {
     const products = await productService.getProducts();
     const response: IResponse<TProduct[]> = {
-      message: 'Products retrieved successfully',
+      message: 'products retrieved successfully',
       success: true,
       data: products,
     };

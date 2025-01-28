@@ -1,5 +1,5 @@
-import TOrder from './Orders.interface';
-import { Order } from './Orders.model';
+import TOrder from './orders.interface';
+import { Order } from './orders.model';
 
 const createOrder = async (orderData: TOrder): Promise<TOrder> => {
   const result = await Order.create(orderData);

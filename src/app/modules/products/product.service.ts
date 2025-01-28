@@ -1,5 +1,5 @@
-import TProduct from './Products.interface';
-import { Product } from './Products.model';
+import TProduct from './products.interface';
+import { Product } from './products.model';
 
 // Fetch all products from the database
 const getProducts = async (): Promise<TProduct[]> => {

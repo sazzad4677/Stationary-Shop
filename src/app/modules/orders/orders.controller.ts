@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { orderService } from './Orders.service';
+import { orderService } from './orders.service';
 import IResponse from '../../helper/responseType';
-import TOrder from './Orders.interface';
-import { Product } from '../Products/Products.model';
+import TOrder from './orders.interface';
+import { Product } from '../products/products.model';
 
 const createOrder = async (req: Request, res: Response) => {
   try {
