@@ -1,10 +1,22 @@
 import TProduct from './products.interface';
 import { Product } from './products.model';
+import QueryBuilder from '../../QueryBuilder';
 
 // Fetch all products from the database
-const getProducts = async (): Promise<TProduct[]> => {
-  const result = await Product.find({});
-  return result;
+const getProducts = async (
+  query: Record<string, unknown>,
+) => {
+  const queryBuilder = new QueryBuilder(Product.find({}), query)
+    .filter()
+    .sort()
+    .search()
+    .paginate();
+  const result = await queryBuilder.modelQuery;
+  const meta = await queryBuilder.countTotal();
+  return {
+    meta,
+    result,
+  };
 };
 
 const createProduct = async (productData: TProduct): Promise<TProduct> => {

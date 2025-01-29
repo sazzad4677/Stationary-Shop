@@ -4,11 +4,12 @@ import IResponse from '../../helper/responseType';
 import TProduct from './products.interface';
 const getProducts = async (req: Request, res: Response) => {
   try {
-    const products = await productService.getProducts();
-    const response: IResponse<TProduct[]> = {
+    const products = await productService.getProducts(req.query);
+    const response = {
       message: 'products retrieved successfully',
       success: true,
-      data: products,
+      data: products.result,
+      meta: products.meta,
     };
     res.status(200).json(response);
   } catch (error) {
