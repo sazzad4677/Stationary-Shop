@@ -81,12 +81,16 @@ class QueryBuilder<T> {
     const page = Number(this?.query?.page) || 1;
     const limit = Number(this?.query?.limit) || 10;
     const totalPage = Math.ceil(total / limit);
+    const maxPrice = (await this.modelQuery.model.find().select('price').sort({ price: -1 }).limit(1))[0]?.price;
+    const minPrice = (await this.modelQuery.model.find().select('price').sort({ price: 1 }).limit(1))[0]?.price;
 
     return {
       page,
       limit,
       total,
       totalPage,
+      maxPrice,
+      minPrice,
     };
   }
 }

@@ -3,6 +3,7 @@ import { AuthRouter } from '../modules/auth/auth.router';
 import { AdminRouter } from '../modules/admin/admin.router';
 import { UsersRouter } from '../modules/users/users.router';
 import { productRouter } from '../modules/products/products.route';
+import { orderRouter } from '../modules/orders/orders.route';
 
 const router = Router();
 
@@ -21,13 +22,17 @@ const routes: IRoute[] = [
     route: UsersRouter,
   },
   {
-    path: "/admin",
-    route: AdminRouter
+    path: '/admin',
+    route: AdminRouter,
   },
   {
-    path: "/products",
-    route: productRouter
-  }
+    path: '/products',
+    route: productRouter,
+  },
+  {
+    path: '/orders',
+    route: orderRouter,
+  },
 ];
 
 routes.forEach((route) => {

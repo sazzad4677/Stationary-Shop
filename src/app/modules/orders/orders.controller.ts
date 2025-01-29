@@ -2,40 +2,10 @@ import { Request, Response } from 'express';
 import { orderService } from './orders.service';
 import IResponse from '../../helper/responseType';
 import TOrder from './orders.interface';
-import { Product } from '../products/products.model';
 
 const createOrder = async (req: Request, res: Response) => {
   try {
     const orderData = req.body;
-    const product = await Product.findById(orderData.product);
-    if (!product) {
-      res.status(404).json({
-        message: 'Product not found',
-        success: false,
-      });
-      return;
-    }
-    if (!product.inStock) {
-      res.status(404).json({
-        message: 'Insufficient product in stock',
-        success: false,
-      });
-      return;
-    }
-    const reduceQuantity = product.quantity - orderData.quantity;
-    if (reduceQuantity < 0) {
-      res.status(404).json({
-        message: 'Insufficient product quantity',
-        success: false,
-      });
-      return;
-    }
-    if (reduceQuantity === 0) {
-      product.inStock = false;
-    }
-    product.quantity = reduceQuantity;
-    // update product stock in db
-    await product.save();
     const result = await orderService.createOrder(orderData);
     const response: IResponse<TOrder> = {
       message: 'Order created successfully',
