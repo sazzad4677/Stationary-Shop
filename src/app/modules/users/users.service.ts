@@ -6,6 +6,12 @@ const getAllUser = async () => {
   return result;
 };
 
+const getMyProfile = async (userId: string) => {
+  const result = await User.findById(userId);
+  return result;
+}
+
 export const UserService = {
   getAllUser,
+  getMyProfile
 };

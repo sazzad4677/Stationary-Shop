@@ -12,10 +12,16 @@ const auth = (...roles: string[]) => {
     if (!token) {
       throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
     }
-    const decodedToken = jwt.verify(
-      token.split(' ')[1],
-      config.token_secret as string,
-    ) as JwtPayload;
+    let decodedToken: JwtPayload;
+    try {
+      decodedToken = jwt.verify(
+        token.split(' ')[1],
+        config.token_secret as string,
+      ) as JwtPayload;
+      // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'Invalid or expired token');
+    }
     const { email, role } = decodedToken;
     const existUser = await User.isUserExist(email);
     if (!existUser) {

@@ -3,7 +3,7 @@ import { UserService } from './users.service';
 import sendResponse from '../../utils/sendResponse';
 import { IUser } from './users.interface';
 
-const getAllUser = catchAsync(async (req, res, next) => {
+const getAllUser = catchAsync(async (req, res) => {
   const result = await UserService.getAllUser();
   sendResponse<IUser[]>(res, {
     statusCode: 200,
@@ -13,8 +13,19 @@ const getAllUser = catchAsync(async (req, res, next) => {
   });
 });
 
+const getMyProfile = catchAsync(async (req, res) => {
+  const result = await UserService.getMyProfile(req.user._id);
+  sendResponse<IUser>(res, {
+    statusCode: 200,
+    message: 'User Information Retrieved Successfully',
+    success: true,
+    data: result
+  })
+})
+
 
 
 export const UserController = {
   getAllUser,
+  getMyProfile
 };
