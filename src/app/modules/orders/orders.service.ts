@@ -4,6 +4,7 @@ import { Product } from '../products/products.model';
 import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
 import mongoose from 'mongoose';
+import { User } from '../users/users.model';
 
 const createOrder = async (orderData: TOrder): Promise<TOrder> => {
   const session = await mongoose.startSession();
@@ -63,41 +64,19 @@ const createOrder = async (orderData: TOrder): Promise<TOrder> => {
     };
 
     const createdOrder = await Order.create([newOrderData], { session });
+    await User.findByIdAndUpdate(
+      { _id: orderData.userId },
+      { shippingAddress: orderData.shippingAddress },
+      { session },
+    );
     await session.commitTransaction();
     await session.endSession();
     return createdOrder[0];
   } catch (error) {
-    // Rollback the transaction in case of errors
     await session.abortTransaction();
     await session.endSession();
-    throw error;
+    throw new AppError(400, 'Failed to create order', (error as Error)?.message);
   }
-
-  // const product = await Product.findById(orderData.product);
-  // if (!product) {
-  //   throw new AppError(StatusCodes.NOT_FOUND, 'User already exist');
-  // }
-  // if (!product.inStock) {
-  //   throw new AppError(
-  //     StatusCodes.BAD_REQUEST,
-  //     'Insufficient product in stock',
-  //   );
-  // }
-  // const reduceQuantity = product.quantity - orderData.quantity;
-  // if (reduceQuantity < 0) {
-  //   throw new AppError(
-  //     StatusCodes.BAD_REQUEST,
-  //     'Insufficient product quantity',
-  //   );
-  // }
-  // if (reduceQuantity === 0) {
-  //   product.inStock = false;
-  // }
-  // product.quantity = reduceQuantity;
-  // // update product stock in db
-  // await product.save();
-  // const result = await Order.create(orderData);
-  // return result;
 };
 const getRevenue = async (): Promise<number> => {
   const result = await Order.aggregate([

@@ -5,7 +5,11 @@ import TOrder from './orders.interface';
 
 const createOrder = async (req: Request, res: Response) => {
   try {
-    const orderData = req.body;
+    const userId = req.user._id;
+    const orderData = {
+      userId,
+      ...req.body
+    };
     const result = await orderService.createOrder(orderData);
     const response: IResponse<TOrder> = {
       message: 'Order created successfully',

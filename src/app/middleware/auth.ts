@@ -16,7 +16,6 @@ const auth = (...roles: string[]) => {
       token.split(' ')[1],
       config.token_secret as string,
     ) as JwtPayload;
-
     const { email, role } = decodedToken;
     const existUser = await User.isUserExist(email);
     if (!existUser) {

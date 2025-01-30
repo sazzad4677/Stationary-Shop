@@ -11,6 +11,26 @@ const userSchema = new Schema<IUser, UserModel>({
   password: { type: String, required: true, select: 0 },
   role: { type: String, enum: Object.values(UserRole), default: 'user' },
   isBlocked: { type: Boolean, default: false },
+  shippingAddress: {
+    address1: {
+      type: String,
+    },
+    address2: {
+      type: String,
+    },
+    country: {
+      type: String,
+    },
+    city: {
+      type: String,
+    },
+    state: {
+      type: String,
+    },
+    zipCode: {
+      type: String,
+    },
+  },
 });
 
 userSchema.pre('save', async function (next) {

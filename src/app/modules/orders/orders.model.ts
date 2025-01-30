@@ -3,36 +3,10 @@ import TOrder from './orders.interface';
 
 const orderSchema = new Schema<TOrder>(
   {
-    fullName: {
-      type: String,
-      required: [true, 'Full name is required'],
-    },
-    address1: {
-      type: String,
-      required: [true, 'Address 1 is required'],
-    },
-    address2: {
-      type: String,
-    },
-    country: {
-      type: String,
-      required: [true, 'Country is required'],
-    },
-    city: {
-      type: String,
-      required: [true, 'City is required'],
-    },
-    state: {
-      type: String,
-      required: [true, 'State is required'],
-    },
-    zipCode: {
-      type: String,
-      required: [true, 'Zip code is required'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'User ID is required'],
     },
     products: [
       {

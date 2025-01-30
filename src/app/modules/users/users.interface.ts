@@ -9,6 +9,14 @@ export interface IUser {
   password: string;
   role: 'admin' | 'user';
   isBlocked: boolean;
+  shippingAddress: {
+    address1: string;
+    address2: string;
+    city: string;
+    state: string;
+    country: string;
+    zipCode: string;
+  }
 }
 
 export interface UserModel extends Model<IUser> {
