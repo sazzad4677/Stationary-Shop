@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongoose';
+import { orderStatus } from './orders.constants';
 
 type TOrder = {
   userId: ObjectId;
@@ -15,6 +16,7 @@ type TOrder = {
     zipCode: string;
     country: string;
   };
+  status: typeof orderStatus[number];
 };
 
 export default TOrder;

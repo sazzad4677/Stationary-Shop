@@ -5,6 +5,14 @@ interface IResponse<T> {
   message: string;
   statusCode: number;
   data?: T | null;
+  meta?: {
+    page: number,
+    limit: number ,
+    total: number ,
+    totalPage: number,
+    maxPrice: number ,
+    minPrice: number
+  };
 }
 
 const sendResponse = <T>(res: Response, data: IResponse<T>) => {
@@ -13,6 +21,7 @@ const sendResponse = <T>(res: Response, data: IResponse<T>) => {
     message: data.message,
     statusCode: data?.statusCode,
     data: data?.data,
+    meta: data?.meta,
   });
 };
 

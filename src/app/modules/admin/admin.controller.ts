@@ -6,7 +6,7 @@ const blockUser = catchAsync(async (req, res) => {
   await AdminService.blockUser(req.params.userId);
   sendResponse(res, {
     statusCode: 200,
-    message: 'User Successfully blocked',
+    message: 'User Status updated successfully',
     success: true,
   })
 })

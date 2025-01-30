@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import TProduct from './products.interface';
+import { categories } from './products.constants';
 
 const productSchema = new Schema<TProduct>(
   {
@@ -20,13 +21,7 @@ const productSchema = new Schema<TProduct>(
     category: {
       type: String,
       required: [true, 'Product category is required'],
-      enum: [
-        'Writing',
-        'Office Supplies',
-        'Art Supplies',
-        'Educational',
-        'Technology',
-      ],
+      enum: [...categories],
     },
     description: {
       type: String,

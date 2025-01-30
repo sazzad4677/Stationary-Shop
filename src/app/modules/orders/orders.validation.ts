@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { orderStatus } from './orders.constants';
 
 const OrderValidationSchema = z.object({
   products: z
@@ -18,6 +19,7 @@ const OrderValidationSchema = z.object({
     zipCode: z.string().nonempty('Zip code is required'),
     country: z.string().nonempty('Country is required'),
   }),
+  status: z.enum([...orderStatus as [string]]).default("Pending"),
 });
 
 export default OrderValidationSchema;

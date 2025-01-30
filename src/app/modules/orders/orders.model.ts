@@ -1,5 +1,6 @@
 import { model, Schema } from 'mongoose';
 import TOrder from './orders.interface';
+import { orderStatus } from './orders.constants';
 
 const orderSchema = new Schema<TOrder>(
   {
@@ -26,6 +27,11 @@ const orderSchema = new Schema<TOrder>(
       type: Number,
       required: [true, 'Total price is required'],
     },
+    status: {
+      type: String,
+      enum: orderStatus,
+      default: 'Pending',
+    }
   },
   {
     timestamps: true,

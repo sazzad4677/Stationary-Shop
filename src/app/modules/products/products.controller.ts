@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { productService } from './product.service';
+import { productService } from './products.service';
 import IResponse from '../../helper/responseType';
 import TProduct from './products.interface';
 const getProducts = async (req: Request, res: Response) => {
