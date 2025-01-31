@@ -2,6 +2,7 @@ import { ObjectId } from 'mongoose';
 import { orderStatus } from './orders.constants';
 
 type TOrder = {
+  orderId: string;
   userId: ObjectId;
   products: {
     productId: ObjectId;

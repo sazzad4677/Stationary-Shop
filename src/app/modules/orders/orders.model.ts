@@ -4,6 +4,11 @@ import { orderStatus } from './orders.constants';
 
 const orderSchema = new Schema<TOrder>(
   {
+    orderId: {
+      type: String,
+      required: [true, 'Order ID is required'],
+      unique: true,
+    },
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -31,11 +36,11 @@ const orderSchema = new Schema<TOrder>(
       type: String,
       enum: orderStatus,
       default: 'Pending',
-    }
+    },
   },
   {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
   },
 );
 

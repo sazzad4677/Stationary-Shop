@@ -4,12 +4,24 @@ import { Product } from '../products/products.model';
 import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import { User } from '../users/users.model';
+import QueryBuilder from '../../QueryBuilder';
+
+function generateOrderId(userId: string): string {
+  const prefix = 'ORD';
+  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
+  const uniquePart = crypto.randomBytes(3).toString('hex').toUpperCase();
+  const userIdentifier = userId.slice(-4);
+
+  return `${prefix}-${timestamp}-${userIdentifier}-${uniquePart}`;
+}
 
 const createOrder = async (orderData: TOrder): Promise<TOrder> => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
+    const orderId = generateOrderId(orderData.userId.toString());
     const productIds = orderData.products.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } }).session(
       session,
@@ -61,6 +73,7 @@ const createOrder = async (orderData: TOrder): Promise<TOrder> => {
     await Product.bulkWrite(productUpdates, { session });
     const newOrderData = {
       ...orderData,
+      orderId,
     };
 
     const createdOrder = await Order.create([newOrderData], { session });
@@ -75,7 +88,11 @@ const createOrder = async (orderData: TOrder): Promise<TOrder> => {
   } catch (error) {
     await session.abortTransaction();
     await session.endSession();
-    throw new AppError(400, 'Failed to create order', (error as Error)?.message);
+    throw new AppError(
+      400,
+      'Failed to create order',
+      (error as Error)?.message,
+    );
   }
 };
 const getRevenue = async (): Promise<number> => {
@@ -89,8 +106,63 @@ const getRevenue = async (): Promise<number> => {
   ]);
   return result[0].totalRevenue;
 };
+const getOrderById = async (orderId: string): Promise<TOrder | null> => {
+  const result = await Order.findById(orderId).populate([
+    {
+      path: 'products.productId',
+    },
+    {
+      path: 'userId',
+    },
+  ]);
+  if (!result)
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      `Order with ID ${orderId} not found`,
+    );
+  return result;
+};
+
+const getAllOrders = async (query: Record<string, unknown>) => {
+  const queryBuilder = new QueryBuilder(
+    Order.find({}).populate([
+      {
+        path: 'products.productId',
+      },
+      {
+        path: 'userId',
+      },
+    ]),
+    query,
+  )
+    .filter()
+    .sort()
+    .search()
+    .paginate();
+  const data = await queryBuilder.modelQuery;
+  const meta = await queryBuilder.countTotal();
+  return {
+    meta,
+    data,
+  };
+};
+
+const updateOrder = async (
+  orderId: string,
+  status: Record<string, unknown>,
+) => {
+  const result = await Order.findByIdAndUpdate(
+    orderId,
+    { status },
+    { new: true },
+  );
+  return result;
+};
 
 export const orderService = {
   createOrder,
   getRevenue,
+  getAllOrders,
+  getOrderById,
+  updateOrder,
 };
