@@ -4,6 +4,7 @@ import { AdminRouter } from '../modules/admin/admin.router';
 import { UsersRouter } from '../modules/users/users.router';
 import { productRouter } from '../modules/products/products.route';
 import { orderRouter } from '../modules/orders/orders.route';
+import { DashboardRouter } from '../modules/dashboard/dashboard.route';
 
 const router = Router();
 
@@ -33,6 +34,10 @@ const routes: IRoute[] = [
     path: '/orders',
     route: orderRouter,
   },
+  {
+    path: '/dashboard',
+    route: DashboardRouter,
+  }
 ];
 
 routes.forEach((route) => {

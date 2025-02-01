@@ -10,6 +10,7 @@ router.get("/",  orderController.getOrders );
 router.get("/:id", auth(UserRole.ADMIN), orderController.getOrderById );
 router.patch("/:id", auth(UserRole.ADMIN), orderController.updateOrder );
 router.post('/', auth(UserRole.USER, UserRole.ADMIN), validateData(ordersValidation), orderController.createOrder);
+router.get('/:userId',auth(UserRole.USER, UserRole.ADMIN), orderController.getOrderByUserId)
 router.get('/revenue', orderController.getRevenue);
 
 export const orderRouter = router;

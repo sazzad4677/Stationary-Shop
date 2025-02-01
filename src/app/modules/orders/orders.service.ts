@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { User } from '../users/users.model';
 import QueryBuilder from '../../QueryBuilder';
+import stripe from "stripe";
+import config from '../../config';
 
 function generateOrderId(userId: string): string {
   const prefix = 'ORD';
@@ -17,10 +19,22 @@ function generateOrderId(userId: string): string {
   return `${prefix}-${timestamp}-${userIdentifier}-${uniquePart}`;
 }
 
+const stripeClient = new stripe(config.stripe_secret_key!, {
+  apiVersion: "2025-01-27.acacia",
+});
+
+
 const createOrder = async (orderData: TOrder): Promise<TOrder> => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
+    const { paymentIntentId } = orderData;
+    const paymentIntent = await stripeClient.paymentIntents.retrieve(
+      paymentIntentId
+    );
+    if (paymentIntent.status !== "succeeded") {
+      throw new AppError(StatusCodes.BAD_REQUEST, "Payment not successful");
+    }
     const orderId = generateOrderId(orderData.userId.toString());
     const productIds = orderData.products.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } }).session(
@@ -159,10 +173,16 @@ const updateOrder = async (
   return result;
 };
 
+const getOrderByUserId = async (userId: string): Promise<TOrder[]> => {
+  const result = await Order.find({ userId });
+  return result;
+};
+
 export const orderService = {
   createOrder,
   getRevenue,
   getAllOrders,
   getOrderById,
   updateOrder,
+  getOrderByUserId,
 };

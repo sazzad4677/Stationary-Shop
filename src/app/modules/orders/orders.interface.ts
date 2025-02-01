@@ -18,6 +18,7 @@ type TOrder = {
     country: string;
   };
   status: typeof orderStatus[number];
+  paymentIntentId: string;
 };
 
 export default TOrder;

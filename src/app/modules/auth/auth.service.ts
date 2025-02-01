@@ -3,8 +3,9 @@ import { User } from '../users/users.model';
 import { IUser } from '../users/users.interface';
 import { StatusCodes } from 'http-status-codes';
 import { ILoginUser } from './auth.interface';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../../config';
+import { StringValue } from 'ms';
 
 const registerUser = async (payload: IUser) => {
   const isUserExist = await User.isUserExist(payload.email);
@@ -39,10 +40,10 @@ const loginUser = async (
     _id: existUser._id
   };
   const token = jwt.sign(user, config.token_secret as string, {
-    expiresIn: 3600,
+    expiresIn: config.token_expires_in as StringValue,
   });
   const refreshToken = jwt.sign(user, config.refresh_token_secret as string, {
-    expiresIn: 604800000 ,
+    expiresIn: config.refresh_token_expires_in as StringValue,
   });
 
   return {
@@ -51,7 +52,41 @@ const loginUser = async (
   };
 };
 
+
+const refreshToken = async (refreshToken: string) => {
+  const decoded = jwt.verify(
+    refreshToken,
+    config.refresh_token_secret as string,
+  ) as JwtPayload;
+
+  const { email } = decoded;
+
+  const existUser = await User.isUserExist(email);
+  if (!existUser) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+  //   check if user already deleted
+  const isBlockedUser = existUser.isBlocked;
+  if (isBlockedUser) {
+    throw new AppError(StatusCodes.FORBIDDEN, 'User Blocked!');
+  }
+
+  const user = {
+    email: existUser.email,
+    role: existUser.role,
+    name: existUser.name,
+    _id: existUser._id
+  };
+  const token = jwt.sign(user, config.token_secret as string, {
+    expiresIn: config.refresh_token_expires_in as StringValue,
+  });
+  return {
+    token,
+  };
+};
+
 export const AuthService = {
   registerUser,
   loginUser,
+  refreshToken
 };

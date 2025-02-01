@@ -30,7 +30,8 @@ const loginUserSchema = z.object({
   }),
 });
 
+
 export const AuthValidation = {
   registerUserSchema,
-  loginUserSchema
+  loginUserSchema,
 };

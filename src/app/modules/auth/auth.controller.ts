@@ -3,6 +3,7 @@ import sendResponse from '../../utils/sendResponse';
 import { AuthService } from './auth.service';
 import { IRegisterUser, IToken } from './auth.interface';
 import config from '../../config';
+import { StatusCodes } from 'http-status-codes';
 
 const registerUser = catchAsync(async (req, res) => {
   const user = req.body;
@@ -50,8 +51,22 @@ const logoutUser = catchAsync(async (req, res) => {
   });
 });
 
+const refreshToken = catchAsync(async (req, res) => {
+  {
+    const { refreshToken } = req.cookies;
+    const result = await AuthService.refreshToken(refreshToken);
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Refresh token is refreshed successfully',
+      data: result,
+    });
+  }
+});
+
 export const AuthController = {
   registerUser,
   loginUser,
   logoutUser,
+  refreshToken
 };
