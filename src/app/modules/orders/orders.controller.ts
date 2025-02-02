@@ -4,6 +4,21 @@ import TOrder from './orders.interface';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 
+const createPaymentIntent = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+  const orderData = {
+    userId,
+    ...req.body,
+  };
+  const result = await orderService.createPaymentIntent(orderData);
+  sendResponse(res, {
+    statusCode: 200,
+    message: 'Payment Intent Created Successfully',
+    success: true,
+    data: result,
+  });
+})
+
 const createOrder = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user._id;
     const orderData = {
@@ -75,4 +90,5 @@ export const orderController = {
   getOrderById,
   updateOrder,
   getOrderByUserId,
+  createPaymentIntent
 };

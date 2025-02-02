@@ -22,3 +22,10 @@ type TOrder = {
 };
 
 export default TOrder;
+
+
+export type TPaymentIntent = {
+  amount: number;
+  currency: string;
+  userId: ObjectId;
+}

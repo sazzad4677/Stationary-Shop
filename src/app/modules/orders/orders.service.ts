@@ -1,41 +1,43 @@
-import TOrder from './orders.interface';
+import TOrder, { TPaymentIntent } from './orders.interface';
 import { Order } from './orders.model';
 import { Product } from '../products/products.model';
 import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
 import mongoose from 'mongoose';
-import crypto from 'crypto';
 import { User } from '../users/users.model';
 import QueryBuilder from '../../QueryBuilder';
-import stripe from "stripe";
+import { generateId } from '../../utils/generateId';
 import config from '../../config';
+import Stripe from 'stripe';
 
-function generateOrderId(userId: string): string {
-  const prefix = 'ORD';
-  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
-  const uniquePart = crypto.randomBytes(3).toString('hex').toUpperCase();
-  const userIdentifier = userId.slice(-4);
+const stripe = new Stripe(config.stripe_secret_key as string);
 
-  return `${prefix}-${timestamp}-${userIdentifier}-${uniquePart}`;
-}
+const createPaymentIntent = async ({
+  amount,
+  currency,
+  userId
+}: TPaymentIntent) => {
+  if (!amount || !currency) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Amount and currency are required" );
+  }
+  const orderId = generateId('ORD', userId.toString());
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount,
+    currency,
+    payment_method_types: ["card"],
+    metadata: {
+      orderId,
+    },
 
-const stripeClient = new stripe(config.stripe_secret_key!, {
-  apiVersion: "2025-01-27.acacia",
-});
-
+  });
+  return paymentIntent.client_secret;
+};
 
 const createOrder = async (orderData: TOrder): Promise<TOrder> => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { paymentIntentId } = orderData;
-    const paymentIntent = await stripeClient.paymentIntents.retrieve(
-      paymentIntentId
-    );
-    if (paymentIntent.status !== "succeeded") {
-      throw new AppError(StatusCodes.BAD_REQUEST, "Payment not successful");
-    }
-    const orderId = generateOrderId(orderData.userId.toString());
+    const orderId = generateId('ORD', orderData.userId.toString());
     const productIds = orderData.products.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } }).session(
       session,
@@ -185,4 +187,5 @@ export const orderService = {
   getOrderById,
   updateOrder,
   getOrderByUserId,
+  createPaymentIntent
 };

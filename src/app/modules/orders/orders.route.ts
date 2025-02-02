@@ -12,5 +12,5 @@ router.patch("/:id", auth(UserRole.ADMIN), orderController.updateOrder );
 router.post('/', auth(UserRole.USER, UserRole.ADMIN), validateData(ordersValidation), orderController.createOrder);
 router.get('/:userId',auth(UserRole.USER, UserRole.ADMIN), orderController.getOrderByUserId)
 router.get('/revenue', orderController.getRevenue);
-
+router.post('/create-payment-intent', auth(UserRole.USER, UserRole.ADMIN), orderController.createPaymentIntent)
 export const orderRouter = router;
