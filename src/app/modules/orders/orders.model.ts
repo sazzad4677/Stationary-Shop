@@ -37,6 +37,26 @@ const orderSchema = new Schema<TOrder>(
       enum: orderStatus,
       default: 'Pending',
     },
+    paymentData: {
+      paymentIntentId: { type: String, required: true },
+      stripeCustomerId: { type: String },
+      amountPaid: { type: Number },
+      currency: { type: String },
+      paymentStatus: {
+        type: String,
+        enum: [
+          'succeeded',
+          'requires_payment_method',
+          'requires_action',
+          'canceled',
+        ],
+      },
+      paymentMethodType: { type: String },
+      customerEmail: { type: String },
+      paymentCreatedAt: { type: Date },
+      failedCode: { type: String },
+      failedMessage: { type: String },
+    },
   },
   {
     timestamps: true,

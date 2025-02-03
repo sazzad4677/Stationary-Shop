@@ -14,4 +14,5 @@ export default {
   refresh_token_expires_in: process.env.REFRESH_TOKEN_EXPIRES_IN,
   stripe_secret_key: process.env.STRIPE_SECRET_KEY,
   frontend_url: process.env.FRONTEND_URL,
+  stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
 };

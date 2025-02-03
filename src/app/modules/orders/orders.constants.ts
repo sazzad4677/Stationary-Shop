@@ -1,1 +1,10 @@
-export const orderStatus = ["All", "Pending", "Processing", "Shipped", "Delivered", "Refunded"]
+export const orderStatus = [
+  'All',
+  'Pending',
+  'Paid',
+  'Processing',
+  'Shipped',
+  'Delivered',
+  'Refunded',
+  'Failed',
+];

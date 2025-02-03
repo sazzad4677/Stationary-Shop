@@ -1,39 +1,20 @@
-import TOrder, { TPaymentIntent } from './orders.interface';
+import TOrder, { TPaymentData } from './orders.interface';
 import { Order } from './orders.model';
 import { Product } from '../products/products.model';
 import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
-import mongoose from 'mongoose';
-import { User } from '../users/users.model';
+import mongoose, { ObjectId } from 'mongoose';
 import QueryBuilder from '../../QueryBuilder';
 import { generateId } from '../../utils/generateId';
 import config from '../../config';
 import Stripe from 'stripe';
+import { orderStatus } from './orders.constants';
 
 const stripe = new Stripe(config.stripe_secret_key as string);
 
-const createPaymentIntent = async ({
-  amount,
-  currency,
-  userId
-}: TPaymentIntent) => {
-  if (!amount || !currency) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "Amount and currency are required" );
-  }
-  const orderId = generateId('ORD', userId.toString());
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount,
-    currency,
-    payment_method_types: ["card"],
-    metadata: {
-      orderId,
-    },
-
-  });
-  return paymentIntent.client_secret;
-};
-
-const createOrder = async (orderData: TOrder): Promise<TOrder> => {
+const createOrder = async (
+  orderData: TOrder,
+): Promise<{ clientSecret: string }> => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -87,20 +68,25 @@ const createOrder = async (orderData: TOrder): Promise<TOrder> => {
     }
     // Perform bulk update for all products
     await Product.bulkWrite(productUpdates, { session });
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(orderData.totalPrice * 100),
+      currency: 'usd',
+      payment_method_types: ['card', 'link', 'affirm'],
+      metadata: {
+        orderId,
+      },
+    });
     const newOrderData = {
       ...orderData,
       orderId,
+      paymentData: { paymentIntentId: paymentIntent.id },
     };
-
-    const createdOrder = await Order.create([newOrderData], { session });
-    await User.findByIdAndUpdate(
-      { _id: orderData.userId },
-      { shippingAddress: orderData.shippingAddress },
-      { session },
-    );
+    await Order.create([newOrderData], { session });
     await session.commitTransaction();
     await session.endSession();
-    return createdOrder[0];
+    return {
+      clientSecret: paymentIntent.client_secret || '',
+    };
   } catch (error) {
     await session.abortTransaction();
     await session.endSession();
@@ -175,10 +161,36 @@ const updateOrder = async (
   return result;
 };
 
+const updateOrderPaymentData = async (
+  paymentIntentId: string,
+  paymentData: TPaymentData,
+  status: (typeof orderStatus)[number],
+) => {
+  const updatedOrder = await Order.findOneAndUpdate(
+    { 'paymentData.paymentIntentId': paymentIntentId },
+    { $set: { paymentData, status } },
+    { new: true },
+  );
+
+  if (!updatedOrder) {
+    throw new AppError(
+      404,
+      `Order with PaymentIntent ID ${paymentIntentId} not found`,
+    );
+  }
+
+  return updatedOrder;
+};
+
 const getOrderByUserId = async (userId: string): Promise<TOrder[]> => {
   const result = await Order.find({ userId });
   return result;
 };
+
+const getMyOrders = async (userId: ObjectId): Promise<TOrder[]> => {
+  const result = await Order.find({ userId });
+  return result
+}
 
 export const orderService = {
   createOrder,
@@ -187,5 +199,6 @@ export const orderService = {
   getOrderById,
   updateOrder,
   getOrderByUserId,
-  createPaymentIntent
+  updateOrderPaymentData,
+  getMyOrders
 };
