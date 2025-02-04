@@ -1,6 +1,8 @@
 import TProduct from './products.interface';
 import { Product } from './products.model';
 import QueryBuilder from '../../QueryBuilder';
+import { cloudinaryUploadMultipleImage } from '../../utils/uploadToCloudnary';
+import { generateCustomID } from '../../utils/generateCustomId';
 
 // Fetch all products from the database
 const getProducts = async (
@@ -20,7 +22,19 @@ const getProducts = async (
 };
 
 const createProduct = async (productData: TProduct): Promise<TProduct> => {
-  const result = await Product.create(productData);
+  const generateProductId = await generateCustomID(Product, "productId", "PROD")
+  const imageData ={
+    paths: productData.images,
+    imageName: generateProductId,
+  };
+  const uploadedImages = await cloudinaryUploadMultipleImage(imageData);
+  const uploadedImagesUrls = uploadedImages.map((image) => image.secure_url);
+  const productDataWithImages = {
+    ...productData,
+    productId: generateProductId,
+    images: uploadedImagesUrls,
+  }
+  const result = await Product.create(productDataWithImages);
   return result;
 };
 

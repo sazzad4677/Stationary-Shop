@@ -61,6 +61,16 @@ const updateOrder = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const initiateRefund = catchAsync(async (req, res) => {
+  const result = await orderService.initiateRefund(req.params.orderId);
+  sendResponse(res, {
+    statusCode: 200,
+    message: 'Orders successfully Refund',
+    success: true,
+    data: result,
+  })
+})
+
 const getOrderByUserId = catchAsync(async (req, res) => {
   {
     const result = await orderService.getOrderByUserId(req.params.userId);
@@ -83,6 +93,26 @@ const getMyOrder = catchAsync(async (req, res) => {
       data: result,
     })
   }
+})
+
+const orderPayNow = catchAsync(async (req, res) => {
+  const result = await orderService.orderPayNow(req.params.orderId);
+  sendResponse(res, {
+    statusCode: 200,
+    message: 'Orders successfully Retrieved',
+    success: true,
+    data: result,
+  })
+})
+
+const cancelOrder = catchAsync(async (req, res) => {
+  const result = await orderService.cancelOrder(req.params.orderId);
+  sendResponse(res, {
+    statusCode: 200,
+    message: 'Orders successfully Cancelled',
+    success: true,
+    data: result,
+  })
 })
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
@@ -157,5 +187,8 @@ export const orderController = {
   updateOrder,
   getOrderByUserId,
   handleStripeWebhook,
-  getMyOrder
+  getMyOrder,
+  orderPayNow,
+  cancelOrder,
+  initiateRefund
 };

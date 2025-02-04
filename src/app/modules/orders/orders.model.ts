@@ -37,6 +37,10 @@ const orderSchema = new Schema<TOrder>(
       enum: orderStatus,
       default: 'Pending',
     },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
     paymentData: {
       paymentIntentId: { type: String, required: true },
       stripeCustomerId: { type: String },
@@ -49,6 +53,7 @@ const orderSchema = new Schema<TOrder>(
           'requires_payment_method',
           'requires_action',
           'canceled',
+          'reversed',
         ],
       },
       paymentMethodType: { type: String },

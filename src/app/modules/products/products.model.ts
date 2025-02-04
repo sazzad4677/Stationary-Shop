@@ -4,6 +4,11 @@ import { categories } from './products.constants';
 
 const productSchema = new Schema<TProduct>(
   {
+    productId: {
+      type: String,
+      required: [true, 'Product ID is required'],
+      unique: true,
+    },
     name: {
       type: String,
       required: [true, 'Product name is required'],
@@ -36,6 +41,15 @@ const productSchema = new Schema<TProduct>(
     inStock: {
       type: Boolean,
       default: true,
+    },
+    images: {
+      type: [String],
+      validate: {
+        validator: function (value: string[]) {
+          return value.length >= 1 && value.length <= 4;
+        },
+        message: 'You must provide at least 1 and at most 4 images.',
+      },
     },
   },
   { timestamps: true, versionKey: false },

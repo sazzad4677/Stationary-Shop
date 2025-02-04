@@ -11,6 +11,7 @@ type TOrder = {
   totalPrice: number;
   status: (typeof orderStatus)[number];
   paymentData?: TPaymentData;
+  isPaid: boolean;
 };
 
 export type TPaymentData = {
@@ -40,6 +41,7 @@ export type TPaymentData = {
   paymentCreatedAt: Date;
   failedCode?: string;
   failedMessage?: string;
+
 };
 
 export default TOrder;

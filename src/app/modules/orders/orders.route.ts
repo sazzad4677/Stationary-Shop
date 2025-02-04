@@ -12,11 +12,14 @@ router.patch("/:id", auth(UserRole.ADMIN), orderController.updateOrder );
 router.post('/', auth(UserRole.USER, UserRole.ADMIN), validateData(ordersValidation), orderController.createOrder);
 router.get('/:userId',auth(UserRole.USER, UserRole.ADMIN), orderController.getOrderByUserId)
 router.get('/revenue', orderController.getRevenue);
+router.get('/pay-now/:orderId', auth(UserRole.USER, UserRole.ADMIN), orderController.orderPayNow);
+router.get('/cancel/:orderId', auth(UserRole.USER, UserRole.ADMIN), orderController.cancelOrder);
 router.post(
   '/webhook',
-  express.raw({ type: 'application/json' }), // Use raw middleware to preserve body
+  express.raw({ type: 'application/json' }),
   orderController.handleStripeWebhook
 );
+router.get("/initiate-refund/:orderId", auth(UserRole.ADMIN), orderController.initiateRefund)
 router.get("/",  auth(UserRole.ADMIN), orderController.getOrders );
 
 export const orderRouter = router;

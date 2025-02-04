@@ -5,10 +5,10 @@ import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
 import mongoose, { ObjectId } from 'mongoose';
 import QueryBuilder from '../../QueryBuilder';
-import { generateId } from '../../utils/generateId';
 import config from '../../config';
 import Stripe from 'stripe';
 import { orderStatus } from './orders.constants';
+import { generateCustomID } from '../../utils/generateCustomId';
 
 const stripe = new Stripe(config.stripe_secret_key as string);
 
@@ -18,7 +18,7 @@ const createOrder = async (
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const orderId = generateId('ORD', orderData.userId.toString());
+    const generateOrderId = await generateCustomID(Order, "orderId", "ORD")
     const productIds = orderData.products.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } }).session(
       session,
@@ -73,13 +73,14 @@ const createOrder = async (
       currency: 'usd',
       payment_method_types: ['card', 'link', 'affirm'],
       metadata: {
-        orderId,
+        orderId: generateOrderId,
       },
     });
     const newOrderData = {
       ...orderData,
-      orderId,
+      orderId: generateOrderId,
       paymentData: { paymentIntentId: paymentIntent.id },
+      isPaid: false,
     };
     await Order.create([newOrderData], { session });
     await session.commitTransaction();
@@ -168,7 +169,7 @@ const updateOrderPaymentData = async (
 ) => {
   const updatedOrder = await Order.findOneAndUpdate(
     { 'paymentData.paymentIntentId': paymentIntentId },
-    { $set: { paymentData, status } },
+    { $set: { paymentData, status, isPaid: true } },
     { new: true },
   );
 
@@ -188,9 +189,68 @@ const getOrderByUserId = async (userId: string): Promise<TOrder[]> => {
 };
 
 const getMyOrders = async (userId: ObjectId): Promise<TOrder[]> => {
-  const result = await Order.find({ userId });
-  return result
-}
+  const result = await Order.find({ userId }).populate(['products.productId']).sort({ createdAt: -1 });
+  return result;
+};
+
+const orderPayNow = async (orderId: string) => {
+  const orderInfo = await Order.findOne({ _id: orderId });
+  if (!orderInfo) throw new AppError(404, `Order with ID ${orderId} not found`);
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: Math.round(orderInfo.totalPrice * 100),
+    currency: 'usd',
+    payment_method_types: ['card', 'link', 'affirm'],
+    metadata: {
+      orderId,
+    },
+  });
+  await Order.findByIdAndUpdate(orderId, {
+    paymentData: { paymentIntentId: paymentIntent.id },
+  });
+  return {
+    clientSecret: paymentIntent.client_secret || '',
+  };
+};
+
+const cancelOrder = async (orderId: string) => {
+  const updatedOrder = await Order.findByIdAndUpdate(
+    orderId,
+    {
+      status: 'Cancelled',
+    },
+    {
+      new: true,
+    },
+  );
+  return updatedOrder;
+};
+
+const initiateRefund = async (orderId: string) => {
+  const orderInfo = await Order.findOne({ _id: orderId });
+
+  if (!orderInfo) throw new AppError(404, `Order with ID ${orderId} not found`);
+
+  if (orderInfo.status !== 'Canceled')
+    throw new AppError(404, `Order with ID ${orderId} is not cancelled`);
+
+  if (!orderInfo.paymentData?.paymentStatus)
+    throw new AppError(404, `Order with ID ${orderId} has no payment data`);
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(
+    orderInfo.paymentData.paymentIntentId,
+  );
+  const charges = await stripe.charges.list({
+    payment_intent: paymentIntent.id,
+  });
+  const chargeId = charges.data[0]?.id;
+  const refund = await stripe.refunds.create({
+    charge: chargeId,
+  });
+  orderInfo.status = 'Refunded';
+  orderInfo.paymentData.paymentStatus = 'reversed';
+  await orderInfo.save();
+  return refund;
+};
 
 export const orderService = {
   createOrder,
@@ -200,5 +260,8 @@ export const orderService = {
   updateOrder,
   getOrderByUserId,
   updateOrderPaymentData,
-  getMyOrders
+  getMyOrders,
+  orderPayNow,
+  cancelOrder,
+  initiateRefund,
 };
