@@ -24,6 +24,7 @@ class QueryBuilder<T> {
       this.modelQuery = this.modelQuery.find({
         $or: [
           { name: { $regex: searchQuery, $options: 'i' } },
+          { orderId: { $regex: searchQuery, $options: 'i' } },
         ],
       });
     }
