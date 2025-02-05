@@ -21,7 +21,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
     throw new AppError(400, 'No files were uploaded');
   }
   const images = (req.files as Express.Multer.File[]).map((file) => file.path);
-  const product = { ...req.body , images};
+  const product = { ...req.body, images };
   const newProduct = await productService.createProduct(product);
   sendResponse(res, {
     statusCode: 200,
@@ -31,7 +31,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getProductByID = async (req: Request, res: Response) => {
+const getProductByID = catchAsync(async (req: Request, res: Response) => {
   const { productId } = req.params;
   const result = await productService.getProductByID(productId);
   sendResponse(res, {
@@ -39,19 +39,22 @@ const getProductByID = async (req: Request, res: Response) => {
     message: 'Product retrieved successfully',
     success: true,
     data: result,
-  })
-};
-const updateProduct = async (req: Request, res: Response) => {
-    const { productId } = req.params;
-    const productData = req.body;
-    const result = await productService.updateProduct(productId, productData);
-    sendResponse(res, {
-      statusCode: 200,
-      message: 'Product updated successfully',
-      success: true,
-      data: result,
-    })
-};
+  });
+});
+const updateProduct = catchAsync(async (req: Request, res: Response) => {
+  const { productId } = req.params;
+  const newImages = (req.files as Express.Multer.File[]).map((file) => file.path);
+  const retainedImages = req.body.images || [];
+  const updatedImages = [...retainedImages, ...newImages];
+  const productData = { ...req.body, images: updatedImages};
+  const result = await productService.updateProduct(productId, productData);
+  sendResponse(res, {
+    statusCode: 200,
+    message: 'Product updated successfully',
+    success: true,
+    data: result,
+  });
+});
 
 const deleteProduct = async (req: Request, res: Response) => {
   try {

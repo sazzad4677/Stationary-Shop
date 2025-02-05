@@ -24,10 +24,9 @@ export const cloudinaryUploadMultipleImage = async (
         const uploadResult = await cloudinary.uploader.upload(path, {
           public_id: fileName,
         });
-        // Await the unlink action for proper async handling
         await fs.unlink(path);
-        console.log('File deleted successfully');
-        return uploadResult; // Return the upload result
+        console.log(fileName, 'Deleted successfully');
+        return uploadResult;
       }),
     );
     return uploadedImages;

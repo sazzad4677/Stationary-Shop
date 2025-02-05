@@ -23,6 +23,11 @@ router.post(
 router.put(
   '/:productId',
   auth(UserRole.ADMIN),
+  upload.array('images', 4),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next()
+  },
   validateData(updateProductSchema),
   productController.updateProduct,
 );
