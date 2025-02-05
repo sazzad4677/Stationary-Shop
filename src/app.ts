@@ -15,7 +15,7 @@ app.use((req, res, next) => {
 app.use(cookieParser())
 app.use(
   cors({
-    origin: ['http://localhost:5173', "https://stationary-shop-frontend-silk.vercel.app/"],
+    origin: ['http://localhost:5173', "https://stationary-shop-frontend-silk.vercel.app"],
     credentials: true,
   }),
 );
