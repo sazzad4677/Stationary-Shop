@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start-prod": "tsc && node ./dist/server.js",
+    "start-prod": "node --max_old_space_size=512 ./dist/server.js",
     "start-dev": "tsc && yarn ts-node-dev --respawn --transpile-only ./src/server.ts",
     "format": "prettier . --write",
     "lint": "eslint src/**/*.ts",
