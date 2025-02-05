@@ -38,5 +38,6 @@ router.delete(
 );
 router.get('/:productId', productController.getProductByID);
 router.get('/', productController.getProducts);
+router.post("/generate-product-description", productController.generateProductDescription)
 
 export const productRouter = router;

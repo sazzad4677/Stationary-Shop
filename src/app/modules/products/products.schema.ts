@@ -13,8 +13,9 @@ export const productSchema = z.object({
   }),
   description: z
     .string()
-    .max(200, "Product description can't exceed 200 characters")
-    .nonempty('Product description is required'),
+    .refine((desc) => desc.trim().split(/\s+/).length <= 1000, {
+      message: "Product description can't exceed 1000 words",
+    }),
   quantity: z.number().min(0, 'Product quantity must be a positive number'),
   inStock: z.boolean().default(true),
 });

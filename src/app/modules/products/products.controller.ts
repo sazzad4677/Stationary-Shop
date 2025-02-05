@@ -82,10 +82,22 @@ const deleteProduct = async (req: Request, res: Response) => {
   }
 };
 
+const generateProductDescription = catchAsync(async (req, res) => {
+  const {name, category, brand} = req.body
+  const result = await productService.generateProductDescription({name, category, brand});
+  sendResponse(res, {
+    statusCode: 200,
+    message: 'Product Description generated successfully',
+    success: true,
+    data: result,
+  })
+})
+
 export const productController = {
   getProducts,
   createProduct,
   getProductByID,
   updateProduct,
   deleteProduct,
+  generateProductDescription
 };

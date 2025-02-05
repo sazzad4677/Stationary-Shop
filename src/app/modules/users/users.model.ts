@@ -31,6 +31,11 @@ const userSchema = new Schema<IUser, UserModel>({
       type: String,
     },
   },
+
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+
 });
 
 userSchema.pre('save', async function (next) {
@@ -54,5 +59,16 @@ userSchema.statics.isPasswordMatched = async function (
 ): Promise<boolean> {
   return await bcrypt.compare(password, hash);
 };
+
+userSchema.virtual('isShippingAddressAdded').get(function () {
+  const shippingAddress = this.shippingAddress;
+  return !!(
+    shippingAddress?.address1 &&
+    shippingAddress?.country &&
+    shippingAddress?.city &&
+    shippingAddress?.state &&
+    shippingAddress?.zipCode
+  );
+});
 
 export const User = model<IUser, UserModel>('User', userSchema);

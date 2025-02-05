@@ -31,7 +31,6 @@ const productSchema = new Schema<TProduct>(
     description: {
       type: String,
       required: [true, 'Product description is required'],
-      maxLength: [200, "Product description can't exceed 200 characters"],
     },
     quantity: {
       type: Number,

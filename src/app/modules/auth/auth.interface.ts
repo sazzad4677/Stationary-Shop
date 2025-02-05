@@ -1,9 +1,7 @@
-import { Types } from 'mongoose';
+
 
 export interface IRegisterUser {
-  name: string;
-  email: string;
-  _id: Types.ObjectId
+  token: string;
 }
 
 export interface ILoginUser {

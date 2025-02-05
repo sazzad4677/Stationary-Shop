@@ -6,6 +6,8 @@ import { generateCustomID } from '../../utils/generateCustomId';
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import { cloudinaryDeleteMultipleImages } from '../../utils/deleteImageFromCloudinary';
+import config from '../../config';
+import OpenAI from 'openai';
 
 // Fetch all products from the database
 const getProducts = async (query: Record<string, unknown>) => {
@@ -61,7 +63,7 @@ const updateProduct = async (
 
   const providedImages = productData.images || [];
   const retainedImages = existingImages.filter((image) =>
-    providedImages.includes(image)
+    providedImages.includes(image),
   );
 
   const imagesToDelete = existingImages.filter(
@@ -72,7 +74,7 @@ const updateProduct = async (
   }
 
   const newLocalImages = providedImages.filter(
-    (image) => !existingImages.includes(image) && !image.startsWith('http')
+    (image) => !existingImages.includes(image) && !image.startsWith('http'),
   );
 
   let newImageUrls: string[] = [];
@@ -87,10 +89,13 @@ const updateProduct = async (
   const updatedImages = [...retainedImages, ...newImageUrls];
   const result = await Product.findByIdAndUpdate(
     id,
-    { ...productData, images: updatedImages,  inStock: (productData.quantity ?? 0) >= 0, },
-    { new: true }
+    {
+      ...productData,
+      images: updatedImages,
+      inStock: (productData.quantity ?? 0) >= 0,
+    },
+    { new: true },
   );
-
 
   return result;
 };
@@ -100,10 +105,38 @@ const deleteProduct = async (id: string): Promise<TProduct | null> => {
   return result;
 };
 
+const generateProductDescription = async ({name, category, brand}: {name: string, category: string, brand: string}) => {
+  const openai = new OpenAI({
+    baseURL: config.openai_base_url,
+    apiKey: config.openai_api_key as string,
+  });
+  try {
+    const completion = await openai.chat.completions.create({
+      model: config.openai_api_model as string,
+      messages: [
+        {
+          role: 'user',
+          content: `Suppose you are adding a product in a E-Commerce site. Now Generate a professional product description for a ${category} named "${name}" from the brand "${brand}".`,
+        },
+      ],
+    });
+    return completion.choices[0].message.content;
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new AppError(
+      400,
+      'Failed to generate product description',
+      errorMessage,
+    );
+  }
+};
+
 export const productService = {
   getProducts,
   createProduct,
   getProductByID,
   updateProduct,
   deleteProduct,
+  generateProductDescription,
 };

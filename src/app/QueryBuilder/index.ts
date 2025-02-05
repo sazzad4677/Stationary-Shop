@@ -50,7 +50,7 @@ class QueryBuilder<T> {
 
       // Filter by category (if provided)
       if (typeof filter === 'object' && 'category' in filter && filter['category'] !== 'all') {
-        filterQuery.category = filter['category'];
+        filterQuery.category = { $regex: new RegExp(filter['category'], 'i') };
       }
       if (typeof filter === 'object' && "inStock" in filter && filter["inStock"] === "true") {
         filterQuery.inStock = true;

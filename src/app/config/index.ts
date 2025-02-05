@@ -18,4 +18,7 @@ export default {
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
   cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  openai_api_key: process.env.OPENAI_API_KEY,
+  openai_api_model: process.env.OPENAI_API_MODEL,
+  openai_base_url: process.env.OPENAI_BASE_URL,
 };

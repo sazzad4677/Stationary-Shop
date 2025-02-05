@@ -12,8 +12,26 @@ const registerUser = async (payload: IUser) => {
   if (isUserExist) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'User already exist');
   }
-  const result = await User.create(payload);
-  return result;
+  const result = await User.create({
+    ...payload,
+    role: 'user',
+  });
+  const user = {
+    email: result.email,
+    role: result.role,
+    name: result.name,
+    _id:  result._id
+  };
+  const token = jwt.sign(user, config.token_secret as string, {
+    expiresIn: config.token_expires_in as StringValue,
+  });
+  const refreshToken = jwt.sign(user, config.refresh_token_secret as string, {
+    expiresIn: config.refresh_token_expires_in as StringValue,
+  });
+  return {
+    token,
+    refreshToken,
+  };
 };
 
 const loginUser = async (

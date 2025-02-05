@@ -8,16 +8,16 @@ import { StatusCodes } from 'http-status-codes';
 const registerUser = catchAsync(async (req, res) => {
   const user = req.body;
   const result = await AuthService.registerUser(user);
-  const refinedData = {
-    name: result.name,
-    email: result.email,
-    _id: result._id,
-  };
+  res.cookie('refreshToken', result.refreshToken, {
+    secure: (config.node_env as string).toString() === 'production',
+  });
   sendResponse<IRegisterUser>(res, {
     statusCode: 200,
     message: 'User Registered Successfully',
     success: true,
-    data: refinedData,
+    data: {
+      token: result.token,
+    },
   });
 });
 
@@ -68,5 +68,5 @@ export const AuthController = {
   registerUser,
   loginUser,
   logoutUser,
-  refreshToken
+  refreshToken,
 };

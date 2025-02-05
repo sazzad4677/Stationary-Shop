@@ -17,6 +17,7 @@ export interface IUser {
     country: string;
     zipCode: string;
   }
+  isShippingAddressAdded: boolean;
 }
 
 export interface UserModel extends Model<IUser> {
