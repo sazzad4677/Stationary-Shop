@@ -105,7 +105,15 @@ const deleteProduct = async (id: string): Promise<TProduct | null> => {
   return result;
 };
 
-const generateProductDescription = async ({name, category, brand}: {name: string, category: string, brand: string}) => {
+const generateProductDescription = async ({
+  name,
+  category,
+  brand,
+}: {
+  name: string;
+  category: string;
+  brand: string;
+}) => {
   const openai = new OpenAI({
     baseURL: config.openai_base_url,
     apiKey: config.openai_api_key as string,
@@ -116,7 +124,7 @@ const generateProductDescription = async ({name, category, brand}: {name: string
       messages: [
         {
           role: 'user',
-          content: `Suppose you are adding a product in a E-Commerce site. Now Generate a professional product description for a ${category} named "${name}" from the brand "${brand}".`,
+          content: `Suppose you are adding a product in a E-Commerce site. Now Generate a professional product description for a ${category} named "${name}" from the brand "${brand}". Make sure the description is detailed and accurate.`,
         },
       ],
     });

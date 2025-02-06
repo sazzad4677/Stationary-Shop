@@ -13,7 +13,6 @@ import AppError from '../errors/AppError';
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   let statusCode = err?.statusCode || 500;
   let message = err.message || 'Something went wrong!';
-
   let errorDetails: TErrorDetails = [
     {
       path: '',
@@ -59,7 +58,6 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
       },
     ];
   }
-
   res.status(statusCode).json({
     success: false,
     message,

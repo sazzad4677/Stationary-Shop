@@ -5,98 +5,75 @@ import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
 import mongoose, { ObjectId } from 'mongoose';
 import QueryBuilder from '../../QueryBuilder';
-import config from '../../config';
-import Stripe from 'stripe';
 import { orderStatus } from './orders.constants';
 import { generateCustomID } from '../../utils/generateCustomId';
+import { createPaymentIntent, refundPaymentIntent } from './orders.utils';
 
-const stripe = new Stripe(config.stripe_secret_key as string);
-
-const createOrder = async (
-  orderData: TOrder,
-): Promise<{ clientSecret: string }> => {
+const createOrder = async (orderData: TOrder) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-  try {
-    const generateOrderId = await generateCustomID(Order, "orderId", "ORD")
-    const productIds = orderData.products.map((item) => item.productId);
-    const products = await Product.find({ _id: { $in: productIds } }).session(
-      session,
+  const generateOrderId = await generateCustomID(Order, 'orderId', 'ORD');
+  const productIds = orderData.products.map((item) => item.productId);
+  const products = await Product.find({ _id: { $in: productIds } }).session(
+    session,
+  );
+
+  if (products.length !== productIds.length) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'One or more products not found');
+  }
+
+  const productUpdates = [];
+  for (const item of orderData.products) {
+    const product = products.find(
+      (p) => p._id.toString() === item.productId.toString(),
     );
 
-    if (products.length !== productIds.length) {
+    if (!product) {
       throw new AppError(
         StatusCodes.NOT_FOUND,
-        'One or more products not found',
+        `Product with ID ${item.productId} not found`,
       );
     }
 
-    const productUpdates = [];
-    for (const item of orderData.products) {
-      const product = products.find(
-        (p) => p._id.toString() === item.productId.toString(),
+    // Validate stock availability
+    if (!product.inStock || product.quantity < item.quantity) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        `Insufficient stock for Product ${product.name}`,
       );
+    }
 
-      if (!product) {
-        throw new AppError(
-          StatusCodes.NOT_FOUND,
-          `Product with ID ${item.productId} not found`,
-        );
-      }
-
-      // Validate stock availability
-      if (!product.inStock || product.quantity < item.quantity) {
-        throw new AppError(
-          StatusCodes.BAD_REQUEST,
-          `Insufficient stock for Product ID ${item.productId}`,
-        );
-      }
-
-      // Prepare data for bulk update
-      const remainingQuantity = product.quantity - item.quantity;
-      productUpdates.push({
-        updateOne: {
-          filter: { _id: product._id },
-          update: {
-            $set: {
-              quantity: remainingQuantity,
-              inStock: remainingQuantity > 0,
-            },
+    // Prepare data for bulk update
+    const remainingQuantity = product.quantity - item.quantity;
+    productUpdates.push({
+      updateOne: {
+        filter: { _id: product._id },
+        update: {
+          $set: {
+            quantity: remainingQuantity,
+            inStock: remainingQuantity > 0,
           },
         },
-      });
-    }
-    // Perform bulk update for all products
-    await Product.bulkWrite(productUpdates, { session });
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(orderData.totalPrice * 100),
-      currency: 'usd',
-      payment_method_types: ['card', 'link', 'affirm'],
-      metadata: {
-        orderId: generateOrderId,
       },
     });
-    const newOrderData = {
-      ...orderData,
-      orderId: generateOrderId,
-      paymentData: { paymentIntentId: paymentIntent.id },
-      isPaid: false,
-    };
-    await Order.create([newOrderData], { session });
-    await session.commitTransaction();
-    await session.endSession();
-    return {
-      clientSecret: paymentIntent.client_secret || '',
-    };
-  } catch (error) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw new AppError(
-      400,
-      'Failed to create order',
-      (error as Error)?.message,
-    );
   }
+  const paymentIntent = await createPaymentIntent({
+    totalPrice: orderData.totalPrice,
+  });
+  // Perform bulk update for all products
+  await Product.bulkWrite(productUpdates, { session });
+  const newOrderData = {
+    ...orderData,
+    orderId: generateOrderId,
+    paymentData: { paymentIntentId: paymentIntent.id },
+  };
+  const result = await Order.create([newOrderData], { session });
+  await session.commitTransaction();
+  await session.endSession();
+  return {
+    order: result[0],
+    clientSecret: paymentIntent.client_secret || '',
+  };
 };
 const getRevenue = async (): Promise<number> => {
   const result = await Order.aggregate([
@@ -169,7 +146,7 @@ const updateOrderPaymentData = async (
 ) => {
   const updatedOrder = await Order.findOneAndUpdate(
     { 'paymentData.paymentIntentId': paymentIntentId },
-    { $set: { paymentData, status, isPaid: true } },
+    { $set: { paymentData, status } },
     { new: true },
   );
 
@@ -189,20 +166,17 @@ const getOrderByUserId = async (userId: string): Promise<TOrder[]> => {
 };
 
 const getMyOrders = async (userId: ObjectId): Promise<TOrder[]> => {
-  const result = await Order.find({ userId }).populate(['products.productId']).sort({ createdAt: -1 });
+  const result = await Order.find({ userId })
+    .populate(['products.productId'])
+    .sort({ createdAt: -1 });
   return result;
 };
 
 const orderPayNow = async (orderId: string) => {
   const orderInfo = await Order.findOne({ _id: orderId });
   if (!orderInfo) throw new AppError(404, `Order with ID ${orderId} not found`);
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(orderInfo.totalPrice * 100),
-    currency: 'usd',
-    payment_method_types: ['card', 'link', 'affirm'],
-    metadata: {
-      orderId,
-    },
+  const paymentIntent = await createPaymentIntent({
+    totalPrice: orderInfo.totalPrice,
   });
   await Order.findByIdAndUpdate(orderId, {
     paymentData: { paymentIntentId: paymentIntent.id },
@@ -236,15 +210,8 @@ const initiateRefund = async (orderId: string) => {
   if (!orderInfo.paymentData?.paymentStatus)
     throw new AppError(404, `Order with ID ${orderId} has no payment data`);
 
-  const paymentIntent = await stripe.paymentIntents.retrieve(
-    orderInfo.paymentData.paymentIntentId,
-  );
-  const charges = await stripe.charges.list({
-    payment_intent: paymentIntent.id,
-  });
-  const chargeId = charges.data[0]?.id;
-  const refund = await stripe.refunds.create({
-    charge: chargeId,
+  const refund = await refundPaymentIntent({
+    paymentIntentId: orderInfo.paymentData.paymentIntentId,
   });
   orderInfo.status = 'Refunded';
   orderInfo.paymentData.paymentStatus = 'reversed';

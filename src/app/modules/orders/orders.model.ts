@@ -37,10 +37,6 @@ const orderSchema = new Schema<TOrder>(
       enum: orderStatus,
       default: 'Pending',
     },
-    isPaid: {
-      type: Boolean,
-      default: false,
-    },
     paymentData: {
       paymentIntentId: { type: String, required: true },
       stripeCustomerId: { type: String },
@@ -66,8 +62,13 @@ const orderSchema = new Schema<TOrder>(
   {
     timestamps: true,
     versionKey: false,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
 
-// Create and export the Order model
+orderSchema.virtual('isPaid').get(function () {
+  return  this.paymentData?.paymentStatus === 'succeeded';
+});
+
 export const Order = model<TOrder>('Order', orderSchema);

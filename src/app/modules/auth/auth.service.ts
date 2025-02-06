@@ -37,7 +37,7 @@ const registerUser = async (payload: IUser) => {
 const loginUser = async (
   payload: ILoginUser,
 ): Promise<{ token: string; refreshToken: string }> => {
-  const existUser = await User.isUserExist(payload.email);
+  const [existUser] = await Promise.all([User.isUserExist(payload.email)]);
   if (!existUser) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid credentials');
   }
