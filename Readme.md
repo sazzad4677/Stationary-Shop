@@ -172,5 +172,3 @@ This project is **MIT Licensed**. See [LICENSE](LICENSE) for details.
 
 ---
 
-🚀 **Happy Coding!** 🚀
-
