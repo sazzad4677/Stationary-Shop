@@ -1,8 +1,12 @@
 import multer from 'multer';
+import fs from 'fs-extra';
+
+const uploadFolder = 'uploads';
+fs.ensureDirSync(uploadFolder);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, uploadFolder);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
