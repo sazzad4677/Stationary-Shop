@@ -11,21 +11,28 @@ interface QueryParams {
 
 class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
-  public query: QueryParams;
+  public query: QueryParams
+  public searchAbleFields: string[] = ['name', ];
 
-  constructor(modelQuery: Query<T[], T>, query: QueryParams) {
+  constructor(modelQuery: Query<T[], T>, query: QueryParams, searchAbleFields: string[] = []) {
     this.modelQuery = modelQuery;
     this.query = query;
+    this.searchAbleFields = searchAbleFields
   }
 
   search() {
     const searchQuery = this.query.search;
     if (searchQuery) {
+      const orConditions = this.searchAbleFields.map((field) => {
+        if (field.includes('.')) {
+          const [parentField, childField] = field.split('.');
+          return { [`${parentField}.${childField}`]: { $regex: searchQuery, $options: 'i' } };
+        }
+        return { [field]: { $regex: searchQuery, $options: 'i' } };
+      });
+
       this.modelQuery = this.modelQuery.find({
-        $or: [
-          { name: { $regex: searchQuery, $options: 'i' } },
-          { orderId: { $regex: searchQuery, $options: 'i' } },
-        ],
+        $or: orConditions,
       });
     }
     return this;

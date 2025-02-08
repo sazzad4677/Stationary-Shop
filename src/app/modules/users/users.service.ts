@@ -3,7 +3,8 @@ import { IUser } from './users.interface';
 import QueryBuilder from '../../QueryBuilder';
 
 const getAllUser = async (query: Record<string, unknown>) => {
-  const queryBuilder = new QueryBuilder(User.find({}), query)
+  const searchAbleFields = ['name', 'email', 'phoneNumber'];
+  const queryBuilder = new QueryBuilder(User.find({}), query, searchAbleFields)
     .filter()
     .sort()
     .search()

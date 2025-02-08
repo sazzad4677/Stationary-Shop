@@ -92,7 +92,7 @@ const getOrderById = async (orderId: string): Promise<TOrder | null> => {
       path: 'products.productId',
     },
     {
-      path: 'userId',
+      path: 'userId'
     },
   ]);
   if (!result)
@@ -104,6 +104,7 @@ const getOrderById = async (orderId: string): Promise<TOrder | null> => {
 };
 
 const getAllOrders = async (query: Record<string, unknown>) => {
+  const searchAbleFields = ['orderId', 'status'];
   const queryBuilder = new QueryBuilder(
     Order.find({}).populate([
       {
@@ -111,9 +112,11 @@ const getAllOrders = async (query: Record<string, unknown>) => {
       },
       {
         path: 'userId',
+        select: "email name"
       },
     ]),
     query,
+    searchAbleFields
   )
     .filter()
     .sort()

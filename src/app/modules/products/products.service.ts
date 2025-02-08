@@ -11,7 +11,8 @@ import OpenAI from 'openai';
 
 // Fetch all products from the database
 const getProducts = async (query: Record<string, unknown>) => {
-  const queryBuilder = new QueryBuilder(Product.find({}), query)
+  const searchAbleFields = ['name', 'category', 'brand'];
+  const queryBuilder = new QueryBuilder(Product.find({}), query, searchAbleFields)
     .filter()
     .sort()
     .search()
